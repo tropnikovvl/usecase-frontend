@@ -12,9 +12,9 @@ from werkzeug.http import HTTP_STATUS_CODES
 now = datetime.datetime.now()
 timeString = now.strftime("%Y-%m-%d %H:%M:%S")
 
-backend_url = os.environ.get("BACKEND_URL")
-backend_port = os.environ.get("BACKEND_PORT")
-backend = f"http://{backend_url}:{backend_port}"
+backend_url = os.environ.get("BACKEND_URL").rstrip()
+backend_port = os.environ.get("BACKEND_PORT").rstrip()
+backend = f"{backend_url}:{backend_port}"
 
 # test
 
@@ -36,10 +36,12 @@ metrics = PrometheusMetrics(app)
 @app.before_request
 def block_method():
     ip = request.remote_addr
-    res = requests.post(f"{backend}/getblack")
-    logging.info("list of blocked ip addresses: " + res.text)
-    if ip in res.text and request.path != "/unlock":
-        abort(403)
+    allow_path = ["/unlock", "/healthz"]
+    if request.path not in allow_path:
+        res = requests.post(f"{backend}/getblack")
+        logging.info("list of blocked ip addresses: " + res.text)
+        if ip in res.text:
+            abort(403)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -49,8 +51,6 @@ def index():
             return redirect(url_for("blacklisted"))
         if "metrics" in request.form:
             return redirect("/metrics")
-        if "healthz" in request.form:
-            return redirect(url_for("healthz"))
         if "debug" in request.form:
             return redirect(url_for("debug"))
         else:
@@ -82,16 +82,7 @@ def abort_code(e):
 
 @app.route("/healthz")
 def healthz():
-    status = None
-    try:
-        r = requests.get(backend)
-    except requests.exceptions.ConnectionError:
-        status = "Network Error while connecting to {}".format(backend)
-    if r and str(r.status_code)[0] not in ("2", "3"):
-        status = "URL {} returned {}".format(backend, requests.status_code)
-    else:
-        status = "Connection established to {}".format(backend)
-    return "OK", status
+    return "OK", 200
 
 
 @app.route("/unlock", methods=["GET", "POST"])
