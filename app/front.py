@@ -33,14 +33,21 @@ app = Flask(__name__)
 metrics = PrometheusMetrics(app)
 
 
+def _get_real_ip():
+    if not request.headers.getlist("X-Forwarded-For"):
+        ip = request.remote_addr
+    else:
+        ip = request.headers.getlist("X-Forwarded-For")[0]
+    return ip
+
+
 @app.before_request
 def block_method():
-    ip = request.remote_addr
     allow_path = ["/unlock", "/healthz"]
     if request.path not in allow_path:
         res = requests.post(f"{backend}/getblack")
         logging.info("list of blocked ip addresses: " + res.text)
-        if ip in res.text:
+        if _get_real_ip() in res.text:
             abort(403)
 
 
@@ -61,7 +68,7 @@ def index():
 
 @app.route("/blacklisted")
 def blacklisted():
-    dictToSend = {"ip": request.remote_addr, "date": timeString, "path": request.url}
+    dictToSend = {"ip": _get_real_ip(), "date": timeString, "path": request.url}
     res = requests.post(f"{backend}/addtoblack", json=dictToSend)
     logging.info("response from server: " + res.text)
     abort(444)
@@ -69,7 +76,7 @@ def blacklisted():
 
 @app.route("/debug")
 def debug():
-    dictToSend = {"ip": request.remote_addr, "date": timeString, "path": request.url}
+    dictToSend = {"ip": _get_real_ip(), "date": timeString, "path": request.url}
     res = requests.post(f"{backend}/debug", json=dictToSend)
     logging.info("response from server: " + res.text)
     return res.json()
@@ -89,7 +96,7 @@ def healthz():
 def unlock():
     if request.method == "POST":
         if "yes" in request.form:
-            dictToSend = {"ip": request.remote_addr}
+            dictToSend = {"ip": _get_real_ip()}
             res = requests.post(f"{backend}/unlock", json=dictToSend)
             logging.info("response from server: " + res.text)
             return redirect(url_for("index"))

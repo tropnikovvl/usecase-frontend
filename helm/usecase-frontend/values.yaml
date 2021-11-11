@@ -8,7 +8,7 @@ image:
   repository: tropnikovvl/usecase-frontend
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: v8
+  tag: v11
 
 imagePullSecrets: []
 nameOverride: ""
@@ -37,12 +37,11 @@ securityContext:
   runAsUser: 1001
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
-  externalTrafficPolicy: Local
 
 ingress:
-  enabled: false
+  enabled: true
   className: ""
   annotations:
     kubernetes.io/ingress.class: nginx
