@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: dev-front-config
-  namespace: dev
-data:
-  BACKEND_URL: "http://backend-usecase-backend.dev.svc.cluster.local"
-  BACKEND_PORT: "8080"

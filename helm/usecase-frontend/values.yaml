@@ -37,20 +37,21 @@ securityContext:
   runAsUser: 1001
 
 service:
-  type: ClusterIP
-  port: 8081
+  type: LoadBalancer
+  port: 80
+  externalTrafficPolicy: Local
 
 ingress:
   enabled: false
   className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: chart-example.local
+    - host: blacklisted.testdev.com
       paths:
         - path: /
-          pathType: ImplementationSpecific
+          pathType: Prefix
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -81,14 +82,6 @@ tolerations: []
 
 affinity: {}
 
-env:
-  - name: BACKEND_URL
-    valueFrom:
-      configMapKeyRef:
-        name: dev-front-config
-        key: BACKEND_URL
-  - name: BACKEND_PORT
-    valueFrom:
-      configMapKeyRef:
-        name: dev-front-config
-        key: BACKEND_PORT
+ConfigMap:
+  BACKEND_URL: "http://backend-usecase-backend"
+  BACKEND_PORT: "8080"

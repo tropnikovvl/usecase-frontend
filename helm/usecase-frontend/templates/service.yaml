@@ -6,6 +6,7 @@ metadata:
     {{- include "usecase-frontend.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http
