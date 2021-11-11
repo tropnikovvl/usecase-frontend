@@ -43,7 +43,7 @@ def _get_real_ip():
 
 @app.before_request
 def block_method():
-    allow_path = ["/unlock", "/healthz"]
+    allow_path = ["/unlock", "/healthz", "/metrics"]
     if request.path not in allow_path:
         res = requests.post(f"{backend}/getblack")
         logging.info("list of blocked ip addresses: " + res.text)
@@ -56,8 +56,6 @@ def index():
     if request.method == "POST":
         if "blacklisted" in request.form:
             return redirect(url_for("blacklisted"))
-        if "metrics" in request.form:
-            return redirect("/metrics")
         if "debug" in request.form:
             return redirect(url_for("debug"))
         else:
