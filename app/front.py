@@ -1,4 +1,5 @@
 import datetime
+import ipaddress
 import logging
 import os
 import sys
@@ -41,14 +42,21 @@ def _get_real_ip():
     return ip
 
 
+def _check_private_ip(ip):
+    i = ipaddress.ip_address(ip).is_private
+    return i
+
+
 @app.before_request
 def block_method():
-    allow_path = ["/unlock", "/healthz", "/metrics"]
-    if request.path not in allow_path:
-        res = requests.post(f"{backend}/getblack")
-        logging.info("list of blocked ip addresses: " + res.text)
-        if _get_real_ip() in res.text:
-            abort(403)
+    allow_path = ["/unlock"]
+    ip = _get_real_ip()
+    if _check_private_ip(ip) != True:
+        if request.path not in allow_path:
+            res = requests.post(f"{backend}/getblack")
+            logging.info("list of blocked ip addresses: " + res.text)
+            if ip in res.text:
+                abort(403)
 
 
 @app.route("/", methods=["GET", "POST"])
