@@ -1,8 +1,8 @@
 import datetime
-import ipaddress
 import logging
 import os
 import sys
+from ipaddress import IPv4Address, IPv4Network
 
 import requests
 from flask import Flask, abort, redirect, render_template, request, url_for
@@ -16,10 +16,7 @@ timeString = now.strftime("%Y-%m-%d %H:%M:%S")
 backend_url = os.environ.get("BACKEND_URL").rstrip()
 backend_port = os.environ.get("BACKEND_PORT").rstrip()
 backend = f"{backend_url}:{backend_port}"
-
-# test
-
-# backend = "http://192.168.1.61:8080"
+kube_network_cidr = os.environ.get("KUBE_NETWORK_CIDR").rstrip()
 
 
 class BadRequest(HTTPException):
@@ -42,8 +39,8 @@ def _get_real_ip():
     return ip
 
 
-def _check_private_ip(ip):
-    i = ipaddress.ip_address(ip).is_private
+def _check_kube_ip(ip):
+    i = IPv4Address(ip) in IPv4Network(kube_network_cidr)
     return i
 
 
@@ -51,7 +48,7 @@ def _check_private_ip(ip):
 def block_method():
     allow_path = ["/unlock"]
     ip = _get_real_ip()
-    if _check_private_ip(ip) != True:
+    if _check_kube_ip(ip) != True:
         if request.path not in allow_path:
             res = requests.post(f"{backend}/getblack")
             logging.info("list of blocked ip addresses: " + res.text)
@@ -61,6 +58,7 @@ def block_method():
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    n = request.args.get("n")
     if request.method == "POST":
         if "blacklisted" in request.form:
             return redirect(url_for("blacklisted"))
@@ -69,7 +67,13 @@ def index():
         else:
             pass
     elif request.method == "GET":
-        return render_template("index.html")
+        if n:
+            if n.isdigit():
+                return str(int(n) ** 2)
+            else:
+                return "This only works with integer"
+        else:
+            return render_template("index.html")
 
 
 @app.route("/blacklisted")

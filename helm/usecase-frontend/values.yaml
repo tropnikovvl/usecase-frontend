@@ -8,7 +8,7 @@ image:
   repository: tropnikovvl/usecase-frontend
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: v16
+  tag: v17
 
 imagePullSecrets: []
 nameOverride: ""
@@ -84,6 +84,7 @@ affinity: {}
 ConfigMap:
   BACKEND_URL: "http://backend-usecase-backend"
   BACKEND_PORT: "8080"
+  KUBE_NETWORK_CIDR: "10.244.0.0/16"
 
 victoriametrics_monitoring:
   enabled: true
