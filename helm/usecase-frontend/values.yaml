@@ -8,7 +8,7 @@ image:
   repository: tropnikovvl/usecase-frontend
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: v17
+  tag: v18
 
 imagePullSecrets: []
 nameOverride: ""

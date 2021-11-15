@@ -61,12 +61,12 @@ echo $(kubectl get svc --namespace ingress-nginx nginx-ingress-nginx-controller 
 ```
 
 **grafana login/password:**
-- login: 
+- login:
 ```shell
 kubectl get secrets victoria-grafana --namespace monitoring -o jsonpath='{.data.admin-user}' | base64 -D
 ```
 
-- password: 
+- password:
 ```shell
 kubectl get secrets victoria-grafana --namespace monitoring -o jsonpath='{.data.admin-password}' | base64 -D
 ```

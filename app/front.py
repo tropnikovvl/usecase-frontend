@@ -10,9 +10,6 @@ from prometheus_flask_exporter import PrometheusMetrics
 from werkzeug.exceptions import Aborter, HTTPException, default_exceptions
 from werkzeug.http import HTTP_STATUS_CODES
 
-now = datetime.datetime.now()
-timeString = now.strftime("%Y-%m-%d %H:%M:%S")
-
 backend_url = os.environ.get("BACKEND_URL").rstrip()
 backend_port = os.environ.get("BACKEND_PORT").rstrip()
 backend = f"{backend_url}:{backend_port}"
@@ -29,6 +26,12 @@ abort = Aborter()
 
 app = Flask(__name__)
 metrics = PrometheusMetrics(app)
+
+
+def _date_now():
+    now = datetime.datetime.now()
+    timeString = now.strftime("%Y-%m-%d %H:%M:%S")
+    return timeString
 
 
 def _get_real_ip():
@@ -78,7 +81,7 @@ def index():
 
 @app.route("/blacklisted")
 def blacklisted():
-    dictToSend = {"ip": _get_real_ip(), "date": timeString, "path": request.url}
+    dictToSend = {"ip": _get_real_ip(), "date": _date_now(), "path": request.url}
     res = requests.post(f"{backend}/addtoblack", json=dictToSend)
     logging.info("response from server: " + res.text)
     abort(444)
@@ -86,7 +89,7 @@ def blacklisted():
 
 @app.route("/debug")
 def debug():
-    dictToSend = {"ip": _get_real_ip(), "date": timeString, "path": request.url}
+    dictToSend = {"ip": _get_real_ip(), "date": _date_now(), "path": request.url}
     res = requests.post(f"{backend}/debug", json=dictToSend)
     logging.info("response from server: " + res.text)
     return res.json()
