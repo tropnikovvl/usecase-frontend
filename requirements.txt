@@ -1,4 +1,4 @@
-Flask==2.0.1
+Flask==2.3.2
 prometheus_flask_exporter==0.18.5
 requests==2.25.1
 werkzeug==2.0.1
